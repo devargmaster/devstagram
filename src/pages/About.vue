@@ -1,6 +1,6 @@
 <template>
   <div class="p-4">
-    <h1 class="text-4xl font-bold mb-4">Sobre nosotros</h1>
+    <main-h1 class="text-center mb-4">Te contamos un poco de nosotros</main-h1>
     <p class="mb-4">Devstagram es una red social diseñada para desarrolladores. Nuestra misión es conectar a los desarrolladores de todo el mundo y proporcionar una plataforma donde puedan compartir sus ideas, proyectos y experiencias.</p>
     <h2 class="text-2xl font-bold mb-2">Nuestra misión</h2>
     <p class="mb-4">Nuestra misión es proporcionar una plataforma donde los desarrolladores puedan conectarse, aprender y crecer juntos.</p>
@@ -14,3 +14,6 @@
     </ul>
   </div>
 </template>
+<script setup lang="ts">
+import MainH1 from "../components/MainH1.vue";
+</script>

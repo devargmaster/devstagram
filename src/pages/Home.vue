@@ -1,59 +1,14 @@
-<template>
-  <div id="app" class="bg-gray-100 flex flex-col justify-center items-center p-4">
-    <main-h1 class="text-4xl font-bold mb-4">Bienvenido a Devstagram</main-h1>
-    <div v-if="!user" class="text-center mb-8">
-      <p class="text-xl mb-4">Devstagram es una red entre developers. Conecta con otros developers de todo el mundo.</p>
-      <router-link class="mb-8 inline-block bg-red-800 text-white px-6 py-2 rounded font-bold text-lg" to="/registro">Regístrate ahora</router-link>
-    </div>
-    <div v-else class="text-center mb-8">
-      <p class="text-xl mb-4">¡Hola, {{ userProfile?.username || user.email }}! Disfruta conectando con otros developers.</p>
-      <router-link class="mb-8 inline-block bg-green-500 hover:bg-green-700 text-white px-6 py-2 rounded font-bold text-lg" to="/create-post">Crear nueva publicación</router-link>
-    </div>
-    <div class="w-full">
-      <h2 class="text-2xl font-bold mb-4">Publicaciones recientes</h2>
-      <ul>
-        <li v-for="post in posts" :key="post.id" class="bg-white p-4 mb-4 rounded shadow relative">
-          <router-link :to="{ name: 'PostDetail', params: { id: post.id } }">
-            {{ post.title }}
-          </router-link>
-          <p>{{ post.content }}</p>
-          <div class="absolute top-2 right-2 flex gap-2">
-            <button @click="handleLike(post.id)"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline">
-              Like ({{ post.likesCount.length }})
-            </button>
-            <button @click="handleComment(post.id)"
-                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline">
-              Comentar
-            </button>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <modal v-if="showLoginModal"
-           :title="modalTitle"
-           :message="modalMessage"
-           @confirm="redirectToLogin"
-           @cancel="showLoginModal = false"></modal>
-    <comment-modal v-if="showCommentModal"
-                   :title="commentModalTitle"
-                   @confirm="addComment"
-                   @cancel="showCommentModal = false">
-    </comment-modal>
-  </div>
-</template>
-
 <script>
 import MainH1 from '../components/MainH1.vue';
 import Modal from '../components/Modal.vue';
 import CommentModal from '../components/CommentModal.vue';
-import {onAuthStateChanged} from "firebase/auth";
-import {auth, db} from "../services/firebase";
-import {collection, getDocs, doc, getDoc, updateDoc, arrayUnion} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../services/firebase";
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 
 export default {
   name: 'Home',
-  components: {MainH1, Modal, CommentModal},
+  components: { MainH1, Modal, CommentModal },
   data() {
     return {
       user: null,
@@ -66,7 +21,19 @@ export default {
       commentModalTitle: 'Agregar Comentario',
       newComment: '',
       postIdToComment: null,
+      currentPage: 1,
+      postsPerPage: 8,
     };
+  },
+  computed: {
+    paginatedPosts() {
+      const start = (this.currentPage - 1) * this.postsPerPage;
+      const end = start + this.postsPerPage;
+      return this.posts.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.posts.length / this.postsPerPage);
+    }
   },
   created() {
     this.fetchPosts();
@@ -76,7 +43,20 @@ export default {
     async fetchPosts() {
       const postsCollection = collection(db, "posts");
       const postsSnapshot = await getDocs(postsCollection);
-      this.posts = postsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      const posts = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      for (let post of posts) {
+        const userDoc = await getDoc(doc(db, "users", post.userId.replace('users/', '')));
+        if (userDoc.exists()) {
+          post.authorName = userDoc.data().name;
+          post.authorAvatar = userDoc.data().avatar;
+        } else {
+          post.authorName = 'Anónimo';
+          post.authorAvatar = '/images/perfil.jpg';
+        }
+      }
+
+      this.posts = posts;
     },
     checkAuthState() {
       onAuthStateChanged(auth, async (user) => {
@@ -100,7 +80,7 @@ export default {
     },
     handleComment(postId) {
       if (this.user) {
-        this.openCommentModal(postId);
+        this.$router.push({ name: 'PostDetail', params: { id: postId }, query: { comment: true } });
       } else {
         this.showLoginModal = true;
       }
@@ -110,11 +90,7 @@ export default {
       await updateDoc(postRef, {
         likesCount: arrayUnion(this.user.uid)
       });
-      this.fetchPosts(); // Refresh posts to show the updated like count
-    },
-    openCommentModal(postId) {
-      this.postIdToComment = postId;
-      this.showCommentModal = true;
+      this.fetchPosts();
     },
     async addComment(comment) {
       const postRef = doc(db, "posts", this.postIdToComment);
@@ -129,12 +105,96 @@ export default {
       this.postIdToComment = null;
       this.fetchPosts();
     },
+    formatDate(timestamp) {
+      if (!timestamp) return '';
+      const date = new Date(timestamp.seconds * 1000);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    },
     redirectToLogin() {
       this.showLoginModal = false;
       this.$router.push('/login');
+    },
+    goToPage(page) {
+      if (page > 0 && page <= this.totalPages) {
+        this.currentPage = page;
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
+    },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
     }
   }
 }
 </script>
 
+<template>
+  <div id="app" class="bg-gray-100 flex flex-col justify-center items-center p-4">
+    <main-h1 class="text-4xl font-bold mb-4">Bienvenido a Devstagram</main-h1>
+    <div v-if="!user" class="text-center mb-8">
+      <p class="text-xl mb-4">Devstagram es una red entre developers. Conecta con otros developers de todo el mundo.</p>
+      <router-link class="mb-8 inline-block bg-red-800 text-white px-6 py-2 rounded font-bold text-lg" to="/registro">Regístrate ahora</router-link>
+    </div>
+    <div v-else class="text-center mb-8">
+      <p class="text-xl mb-4">¡Hola, {{ userProfile?.name }}! Disfruta conectando con otros developers.</p>
+      <router-link class="mb-8 inline-block bg-green-500 hover:bg-green-700 text-white px-6 py-2 rounded font-bold text-lg" to="/create-post">Crear nueva publicación</router-link>
+    </div>
+    <div class="w-full max-w-4xl">
+      <h2 class="text-2xl font-bold mb-4">Publicaciones recientes</h2>
+      <ul>
+        <li v-for="post in paginatedPosts" :key="post.id" class="bg-white p-6 mb-6 rounded-lg shadow-md relative">
+          <div class="flex items-center mb-4">
+            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
+              <img :src="post.authorAvatar || '/images/perfil.jpg'" alt="Avatar" class="h-10 w-10 rounded-full object-cover">
+            </div>
+            <div class="ml-4">
+              <h3 class="text-lg font-bold"><router-link :to="{ name: 'PostDetail', params: { id: post.id } }">{{ post.title }}</router-link></h3>
+              <p class="text-sm text-gray-500">Publicado por {{ post.authorName }} el {{ formatDate(post.createdAt) }}</p>
+            </div>
+          </div>
+          <p class="text-gray-800 mb-4">{{ post.content }}</p>
+          <div class="absolute top-2 right-2 flex gap-2">
+            <button @click="handleLike(post.id)"
+                    class="flex items-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              <i class="fas fa-thumbs-up mr-2"></i> Like ({{ post.likesCount.length }})
+            </button>
+            <button @click="handleComment(post.id)"
+                    class="flex items-center bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              <i class="fas fa-comment mr-2"></i> Comentar
+            </button>
+          </div>
+        </li>
+      </ul>
+      <div class="flex justify-between mt-4">
+        <div v-if="totalPages > 1" class="flex justify-between mt-4">
+          <button @click="prevPage" :disabled="currentPage === 1" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+            Anterior
+          </button>
+          <p class="ml-4 mr-4">Página {{ currentPage }} de {{ totalPages }}</p>
+          <button @click="nextPage" :disabled="currentPage === totalPages" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </div>
+    <modal v-if="showLoginModal"
+           :title="modalTitle"
+           :message="modalMessage"
+           @confirm="redirectToLogin"
+           @cancel="showLoginModal = false"></modal>
+    <comment-modal v-if="showCommentModal"
+                   :title="commentModalTitle"
+                   @confirm="addComment"
+                   @cancel="showCommentModal = false">
+    </comment-modal>
+  </div>
+</template>
 
+<style>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
+</style>
