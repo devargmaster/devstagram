@@ -1,31 +1,7 @@
-<script setup>
-import { ref } from 'vue';
-import { login } from '../services/auth';
-import { useRouter } from 'vue-router';
-
-const email = ref('');
-const password = ref('');
-const loading = ref(false);
-const errorMessage = ref('');
-const router = useRouter();
-
-const handleSubmit = async () => {
-  loading.value = true;
-  errorMessage.value = '';
-  try {
-    await login(email.value, password.value);
-    router.push('/perfil');
-  } catch (error) {
-    errorMessage.value = error.message;
-  }
-  loading.value = false;
-};
-</script>
-
 <template>
   <div class="flex justify-center items-center h-screen bg-gray-100">
     <form @submit.prevent="handleSubmit" class="w-full max-w-sm bg-white p-6 m-4 rounded shadow-md">
-      <h1 class="text-center mb-4 text-2xl font-bold">Iniciar Sesión</h1>
+      <h1 class="text-center mb-4 text-4xl">Iniciar Sesión</h1>
       <div class="mb-4">
         <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email</label>
         <input v-model="email" type="email" id="email" placeholder="Tu email"
@@ -50,3 +26,46 @@ const handleSubmit = async () => {
     </form>
   </div>
 </template>
+
+<script>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { login } from '../services/auth';
+
+export default {
+  name: 'Login',
+  setup() {
+    const email = ref('');
+    const password = ref('');
+    const loading = ref(false);
+    const errorMessage = ref('');
+    const router = useRouter();
+
+    const handleSubmit = async () => {
+      loading.value = true;
+      errorMessage.value = '';
+      try {
+        await login(email.value, password.value);
+        router.push('/perfil');
+      } catch (error) {
+        if (error.code === 'auth/wrong-password') {
+          errorMessage.value = 'Contraseña incorrecta. Por favor, inténtalo de nuevo.';
+        } else if (error.code === 'auth/user-not-found') {
+          errorMessage.value = 'No se encontró una cuenta con este correo electrónico.';
+        } else {
+          errorMessage.value = error.message;
+        }
+      }
+      loading.value = false;
+    };
+
+    return {
+      email,
+      password,
+      loading,
+      errorMessage,
+      handleSubmit
+    };
+  }
+}
+</script>

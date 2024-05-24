@@ -13,7 +13,19 @@
         Publicación creada con éxito.
       </div>
     </div>
-    <div v-if="userProfile" class="bg-white p-6 rounded-lg shadow-lg">
+    <div class="flex items-center justify-center w-screen mb-4 ml-4 pl-4">
+      <div v-if="deletedRecord"
+           class="text-white alert alert-success bg-red-700 rounded flex justify-center justify-items-center mx-auto my-auto p-4">
+        Publicación borrada con éxito.
+      </div>
+    </div>
+    <div v-if="loading">
+      <skeleton-loader />
+      <skeleton-loader />
+      <skeleton-loader />
+      <skeleton-loader />
+    </div>
+    <div v-else-if="userProfile" class="bg-white p-6 rounded-lg shadow-lg">
       <div class="flex flex-col items-center mb-6">
         <div class="w-1/4">
           <img src="/images/perfil.jpg" alt="Foto de perfil" class="rounded-full w-full">
@@ -82,6 +94,7 @@
 <script>
 import MainH1 from '../components/MainH1.vue';
 import Modal from '../components/Modal.vue';
+import SkeletonLoader from '../components/SkeletonLoader.vue';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../services/firebase";
 import { doc, getDoc, collection, where, getDocs, deleteDoc, query } from "firebase/firestore";
@@ -89,7 +102,7 @@ import { logout } from "../services/auth";
 
 export default {
   name: 'MyProfile',
-  components: {MainH1, Modal},
+  components: { MainH1, Modal, SkeletonLoader },
   data() {
     return {
       user: null,
@@ -101,11 +114,13 @@ export default {
       showModal: false,
       passwordChanged: false,
       postCreated: false,
+      deletedRecord: false,
       postIdToDelete: null,
       modalTitle: 'Confirmar Eliminación',
       modalMessage: '¿Estás seguro de que deseas eliminar esta publicación?',
       currentPage: 1,
       postsPerPage: 4,
+      loading: true,
     };
   },
   computed: {
@@ -120,10 +135,7 @@ export default {
   },
   created() {
     this.fetchUser();
-    this.passwordChanged = localStorage.getItem('passwordUpdated') === 'true';
-    this.postCreated = localStorage.getItem('postCreated') === 'true';
-    localStorage.removeItem('passwordUpdated');
-    localStorage.removeItem('postCreated');
+    this.clearMessages();
   },
   methods: {
     async fetchUser() {
@@ -139,6 +151,7 @@ export default {
           const postsQuery = query(collection(db, "posts"), where("userId", "==", `users/${user.uid}`));
           const querySnapshot = await getDocs(postsQuery);
           this.myPosts = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+          this.loading = false;
         } else {
           this.user = null;
           this.userProfile = null;
@@ -156,6 +169,12 @@ export default {
         this.myPosts = this.myPosts.filter(post => post.id !== this.postIdToDelete);
         this.showModal = false;
         this.postIdToDelete = null;
+        this.deletedRecord = true;
+        localStorage.setItem('deletedRecord', 'true');
+        if (this.currentPage > this.totalPages) {
+          this.currentPage = this.totalPages;
+        }
+        this.clearMessages();
       } catch (error) {
         console.error("Error al eliminar la publicación: ", error);
       }
@@ -168,20 +187,26 @@ export default {
         console.error("Error al cerrar sesión: ", error);
       }
     },
-    goToPage(page) {
-      if (page > 0 && page <= this.totalPages) {
-        this.currentPage = page;
-      }
-    },
+
     nextPage() {
+      this.clearMessages();
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
       }
     },
     prevPage() {
+      this.clearMessages();
       if (this.currentPage > 1) {
         this.currentPage--;
       }
+    },
+    clearMessages() {
+        this.passwordChanged = localStorage.getItem('passwordUpdated') === 'true';
+        this.postCreated = localStorage.getItem('postCreated') === 'true';
+        this.deletedRecord = localStorage.getItem('deletedRecord') === 'true';
+        localStorage.removeItem('passwordUpdated');
+        localStorage.removeItem('postCreated');
+        localStorage.removeItem('deletedRecord');
     }
   }
 }

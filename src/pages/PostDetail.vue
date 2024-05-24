@@ -35,7 +35,7 @@ export default {
           }
         });
       } else {
-        console.log("No such document!");
+        console.log("No se encuentra el documento!");
       }
 
       auth.onAuthStateChanged(currentUser => {
