@@ -49,10 +49,18 @@ export default {
       <nav class="flex gap-2 items-center">
         <router-link class="font-bold uppercase text-red-800 text-sm" to="/">Home</router-link>
         <router-link class="font-bold uppercase text-red-800 text-sm" to="/about">Nosotros</router-link>
-        <router-link v-if="!user" class="font-bold uppercase text-red-800 text-sm" to="/login">Login</router-link>
-        <router-link v-if="!user" class="font-bold uppercase text-red-800 text-sm" to="/registro">Registro</router-link>
-        <router-link v-if="user" class="font-bold uppercase text-red-800 text-sm" to="/perfil">Perfil</router-link>
-        <button v-if="user" @click="handleLogout" class="font-bold uppercase text-red-800 text-sm">Salir</button>
+        <router-link v-if="!user" class="font-bold uppercase text-red-800 text-sm" title="Ingresar" to="/login">
+          <i class="fas fa-sign-in-alt"></i>
+        </router-link>
+        <router-link v-if="!user" class="font-bold uppercase text-red-800 text-sm" title="Registrarse" to="/registro">
+          <i class="fas fa-user-plus"></i>
+        </router-link>
+        <router-link v-if="user" class="font-bold uppercase text-red-800 text-sm" to="/perfil">
+          <i class="fas fa-user"></i>
+        </router-link>
+        <button v-if="user" @click="handleLogout" class="font-bold uppercase text-red-800 text-sm">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
       </nav>
     </div>
   </header>

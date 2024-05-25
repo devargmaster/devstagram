@@ -8,6 +8,7 @@ import Login from "../pages/Login.vue";
 import UpdatePassword from "../pages/UpdatePassword.vue";
 import CreatePost from "../pages/CreatePost.vue";
 import PostDetail from "../pages/PostDetail.vue";
+import {getAuth} from "firebase/auth";
 
 
 const routes = [
@@ -16,9 +17,45 @@ const routes = [
   { path: '/about',          component: About, },
   { path: '/login',          component: Login, },
   { path: '/perfil',          component: MyProfile, },
-  { path: '/create-post',          component: CreatePost, },
-  { path: '/post-detail/:id', name: 'PostDetail', component: PostDetail, props: true },
-  { path: '/cambiar-contrasena', component:UpdatePassword,}
+  {
+    path: '/create-post',
+    name: 'CreatePost',
+    component: CreatePost,
+    beforeEnter: (to, from, next) => {
+      const auth = getAuth();
+      if (auth.currentUser) {
+        next();
+      } else {
+        next('/login');
+      }
+    },
+  },
+  {
+    path: '/post-detail/:id',
+    name: 'PostDetail',
+    component: PostDetail,
+    props: true,
+    beforeEnter: (to, from, next) => {
+      const auth = getAuth();
+      if (auth.currentUser) {
+        next();
+      } else {
+        next('/login');
+      }
+    },
+  },
+  {
+    path: '/cambiar-contrasena',
+    component: UpdatePassword,
+    beforeEnter: (to, from, next) => {
+      const auth = getAuth();
+      if (auth.currentUser) {
+        next();
+      } else {
+        next('/login');
+      }
+    },
+  },
 ];
 const router = createRouter({
   routes,

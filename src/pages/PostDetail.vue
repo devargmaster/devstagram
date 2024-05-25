@@ -113,7 +113,7 @@ export default {
 <template>
   <div class="post-detail p-6 bg-gray-100 min-h-screen flex flex-col items-center">
     <div v-if="post" class="w-full max-w-4xl">
-      <h1 class="text-3xl font-bold mb-4 text-center">{{ post.title }}</h1>
+      <h1 class="text-3xl font-bold mb-4 text-center mt-4">{{ post.title }}</h1>
       <p class="text-sm text-gray-500 mb-4 text-center">Publicado por {{ post.authorName }} el {{ formatDate(post.createdAt) }}</p>
       <div class="mb-4 flex justify-center">
         <div class="flex items-center mr-4">
@@ -126,10 +126,11 @@ export default {
           <i class="fas fa-comments mr-2"></i> Comentarios: {{ comments.length }}
         </div>
       </div>
-      <div v-html="post.content" class="prose mb-4 mx-auto"></div>
+
+      <div v-html="post.content" class="prose mb-4 mx-auto bg-white p-6 rounded shadow mb-6"></div>
 
       <div v-if="post.sourcecode" class="relative mb-4 mx-auto">
-        <div class="code-container bg-gray-100 p-4 rounded overflow-x-auto relative">
+        <div class="code-container bg-gray-100 p-4 rounded overflow-x-auto relative ">
           <pre><code ref="codeBlock" class="language-javascript">{{ post.sourcecode }}</code></pre>
           <button @click="copyCode" class="absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
             Copiar código
@@ -138,23 +139,25 @@ export default {
       </div>
 
       <h2 class="text-2xl font-bold mb-4 text-center">Comentarios</h2>
-      <ul class="mb-4 mx-auto">
+      <ul class="mb-4 ml-4 mr-4 mx-auto">
         <li v-for="comment in sortedComments" :key="comment.id" class="bg-white p-4 mb-4 rounded shadow flex items-start">
           <img :src="'/images/perfil.jpg'" alt="Avatar" class="w-12 h-12 rounded-full mr-4">
-          <div>
+          <div class="mr-4 ml-4">
             <p class="text-sm text-gray-500 mb-1">{{ comment.authorName }} el {{ formatDate(comment.createdAt) }}</p>
-            <p>{{ comment.content }}</p>
+            <p class="mr-4 ml-4">{{ comment.content }}</p>
           </div>
         </li>
       </ul>
 
-      <div v-if="user && user.uid !== post.userId.split('/')[1]" class="mt-4 mx-auto">
-        <h3 class="text-xl font-bold mb-2 text-center">Agregar Comentario</h3>
-        <textarea v-model="newComment" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" placeholder="Escribe tu comentario aquí..."></textarea>
-        <button @click="addComment" :disabled="loading" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-auto block">
-          Comentar
-        </button>
-        <p v-if="errorMessage" class="text-red-500 text-xs italic mt-2 text-center">{{ errorMessage }}</p>
+      <div v-if="user && user.uid !== post.userId.split('/')[1]" class="mt-4 mx-auto flex flex-col items-center">
+        <div class="w-full max-w-md">
+          <h3 class="text-xl font-bold mb-2 text-center ">Agregar Comentario</h3>
+          <textarea v-model="newComment" class="shadow w-full appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" placeholder="Escribe tu comentario aquí..."></textarea>
+          <button @click="addComment" :disabled="loading" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-auto block">
+            Comentar
+          </button>
+          <p v-if="errorMessage" class="text-red-500 text-xs italic mt-2 text-center">{{ errorMessage }}</p>
+        </div>
       </div>
       <div v-else-if="user && user.uid === post.userId.split('/')[1]" class="text-center mt-4">
         <p class="text-gray-600">No puedes comentar en tu propia publicación.</p>
