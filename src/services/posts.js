@@ -30,3 +30,8 @@ export async function createPost(userId, content,title, sourcecode, authorName) 
     throw error;
   }
 }
+export const updatePost = async (postId, uid, content, title, sourcecode, displayName) => {
+  // Aquí va tu lógica para actualizar la publicación en la base de datos
+  // Puedes usar postId para identificar la publicación a actualizar
+  // y los otros parámetros para los nuevos valores de la publicación
+};

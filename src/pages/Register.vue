@@ -1,5 +1,6 @@
 <script>
 import { ref } from 'vue';
+import { useRouter } from "vue-router";
 import { useVuelidate } from '@vuelidate/core';
 import { required, email, minLength } from '@vuelidate/validators';
 import MainH1 from "../components/MainH1.vue";
@@ -9,6 +10,7 @@ export default {
   name: 'Register',
   components: { MainH1 },
   setup() {
+    const router = useRouter();
     const user = ref({
       name: '',
       email: '',
@@ -35,7 +37,7 @@ export default {
       errorMessage.value = '';
       try {
         await register(user.value.email, user.value.password, user.value.name);
-        this.$router.push({
+        router.push({
           path: '/perfil',
         });
       } catch (error) {

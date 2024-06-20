@@ -31,6 +31,27 @@ const handleSubmit = async () => {
     errorMessage.value = 'Debes iniciar sesión para crear una publicación';
   }
 };
+const handleEdit = async () => {
+  if (auth.currentUser) {
+    loading.value = true;
+    errorMessage.value = '';
+    try {
+      const user = auth.currentUser;
+      await updatePost(postId, auth.currentUser.uid, content.value, title.value, sourcecode.value, user.displayName || user.email);
+      console.log(sourcecode.value)
+      title.value = '';
+      content.value = '';
+      sourcecode.value = '';
+      localStorage.setItem('postUpdated', 'true');
+      await router.push('/perfil');
+    } catch (error) {
+      errorMessage.value = error.message;
+    }
+    loading.value = false;
+  } else {
+    errorMessage.value = 'Debes iniciar sesión para editar una publicación';
+  }
+};
 </script>
 <template>
   <main-h1 class="text-center mb-6">Crear Publicación</main-h1>

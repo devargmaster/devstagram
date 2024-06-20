@@ -1,3 +1,6 @@
+<script setup lang="ts">
+import MainH1 from "../components/MainH1.vue";
+</script>
 <template>
   <div class="p-4">
     <main-h1 class="text-center mb-4">Te contamos un poco de nosotros</main-h1>
@@ -14,6 +17,4 @@
     </ul>
   </div>
 </template>
-<script setup lang="ts">
-import MainH1 from "../components/MainH1.vue";
-</script>
+
