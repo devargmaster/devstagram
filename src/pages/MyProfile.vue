@@ -153,13 +153,15 @@ export default {
         </div>
         <div class="w-3/4 pl-6 text-center">
           <h2 class="text-3xl font-bold mb-2">Perfil de: {{ userProfile.name }}</h2>
-          <div class="mb-4">
+          <p class="text-lg mb-2">Biografía: {{ userProfile.bio }}</p>
+          <p class="text-lg mb-2">Carrera: {{ userProfile.career }}</p>
+          <div class="flex justify-center space-x-4 mb-4">
             <router-link to="/cambiar-contrasena"
                          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
               Cambiar contraseña
             </router-link>
             <router-link to="/editar-perfil"
-                         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
+                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
               Editar Perfil
             </router-link>
           </div>

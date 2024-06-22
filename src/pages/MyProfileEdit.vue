@@ -61,41 +61,59 @@ export default {
 </script>
 
 <template>
-  <MainH1>Editar mi Perfil</MainH1>
-
-  <form
-    action="#"
-    @submit.prevent="handleSubmit"
-  >
-    <div class="mb-3">
-      <MainLabel for="bio">Biografía</MainLabel>
-      <textarea
-        id="bio"
-        class="w-full p-2 border border-gray-300 rounded disabled:bg-gray-100"
-        :disabled="editingProfile"
-        v-model="profileData.bio"
-      ></textarea>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div class="w-full max-w-md">
+      <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div class="mb-4">
+          <h2 class="text-2xl font-bold mb-2">Editar mi Perfil</h2>
+        </div>
+        <form
+          action="#"
+          @submit.prevent="handleSubmit"
+        >
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="bio">
+              Biografía
+            </label>
+            <textarea
+              id="bio"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              :disabled="editingProfile"
+              v-model="profileData.bio"
+            ></textarea>
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="displayName">
+              Nombre de Usuario
+            </label>
+            <input
+              type="text"
+              id="displayName"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              :disabled="editingProfile"
+              v-model="profileData.displayName"
+            >
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="career">
+              Carrera
+            </label>
+            <input
+              type="text"
+              id="career"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              :disabled="editingProfile"
+              v-model="profileData.career"
+            >
+          </div>
+          <div class="flex items-center justify-between">
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    type="submit" :disabled="editingProfile">
+              Actualizar mis datos
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-    <div class="mb-3">
-      <MainLabel for="displayName">Nombre de Usuario</MainLabel>
-      <input
-        type="text"
-        id="displayName"
-        class="w-full p-2 border border-gray-300 rounded disabled:bg-gray-100"
-        :disabled="editingProfile"
-        v-model="profileData.displayName"
-      >
-    </div>
-    <div class="mb-3">
-      <MainLabel for="career">Carrera</MainLabel>
-      <input
-        type="text"
-        id="career"
-        class="w-full p-2 border border-gray-300 rounded disabled:bg-gray-100"
-        :disabled="editingProfile"
-        v-model="profileData.career"
-      >
-    </div>
-    <MainButton :disabled="editingProfile">Actualizar mis datos</MainButton>
-  </form>
+  </div>
 </template>
