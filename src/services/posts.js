@@ -1,11 +1,11 @@
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import {collection, addDoc, Timestamp, query, where, getDocs} from "firebase/firestore";
 import { db } from "./firebase";
 
 /**
  * Crea una nueva publicación en Firestore.
  *
  * @param {string} userId - El ID del usuario que crea la publicación.
- * @param {string} title - El titulo de la publicación.
+ * @param {string} title - El título de la publicación.
  * @param {string} content - El contenido de la publicación.
  * @param sourcecode
  * @param authorName
@@ -29,6 +29,13 @@ export async function createPost(userId, content,title, sourcecode, authorName) 
     console.error("Error al crear la publicación: ", error);
     throw error;
   }
+}
+export async function getPostsByUser(userId) {
+  const postsCollection = collection(db, "posts");
+  const q = query(postsCollection, where("userId", "==", `users/${userId}`));
+  const querySnapshot = await getDocs(q);
+  const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return posts;
 }
 export const updatePost = async (postId, uid, content, title, sourcecode, displayName) => {
   // Aquí va tu lógica para actualizar la publicación en la base de datos

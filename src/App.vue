@@ -55,6 +55,9 @@ export default {
         <router-link v-if="!user" class="font-bold uppercase text-red-800 text-sm" title="Registrarse" to="/registro">
           <i class="fas fa-user-plus"></i>
         </router-link>
+        <router-link class="font-bold uppercase text-red-800 text-sm" v-if="user" :to="{ name: 'UsersProfiles', params: { userId: user.id } }">
+          Ver perfiles
+        </router-link>
         <router-link v-if="user" class="font-bold uppercase text-red-800 text-sm" to="/perfil">
           <i class="fas fa-user"></i>
         </router-link>

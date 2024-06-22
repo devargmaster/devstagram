@@ -9,14 +9,21 @@ import UpdatePassword from "../pages/UpdatePassword.vue";
 import CreatePost from "../pages/CreatePost.vue";
 import PostDetail from "../pages/PostDetail.vue";
 import {getAuth} from "firebase/auth";
-
+import UsersProfiles from "../pages/UsersProfiles.vue";
+import MyProfileEdit from "../pages/MyProfileEdit.vue";
 
 const routes = [
-  { path: '/',                component: Home, },
-  { path: '/registro',        component: Register, },
+  { path: '/',               component: Home, },
+  { path: '/registro',       component: Register, },
   { path: '/about',          component: About, },
   { path: '/login',          component: Login, },
-  { path: '/perfil',          component: MyProfile, },
+  { path: '/perfil',         component: MyProfile, },
+  { path: '/user/:userId',
+    name:'UsersProfiles',
+    component: UsersProfiles,
+    props: true,
+  },
+  { path: '/editar-perfil', component: MyProfileEdit },
   {
     path: '/create-post',
     name: 'CreatePost',

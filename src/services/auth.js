@@ -4,10 +4,11 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   reauthenticateWithCredential,
-  signOut, updatePassword
+  signOut, updatePassword, updateProfile
 } from "firebase/auth";
 import { auth, db } from "./firebase";
-import { doc, setDoc } from "firebase/firestore";
+import {doc, getDoc, setDoc} from "firebase/firestore";
+import {updateUserProfile} from "./user-profile.js";
 
 const EMPTY_USER_DATA = {
   id: null,
@@ -29,7 +30,7 @@ onAuthStateChanged(auth, user => {
 });
 
 /**
- * Crea una cuenta de usuario, y lo autentica.
+ * Crea una cuenta de usuario, y lo auténtica.
  * También crea un documento en Firestore para el usuario.
  *
  * @param {string} email
@@ -47,7 +48,6 @@ export async function register(email, password, name) {
       createdAt: new Date(),
       name: name,
     });
-
     console.log("Usuario creado. ID: ", user.uid);
     return user;
   } catch (error) {
@@ -142,6 +142,48 @@ export async function updateUserPassword(currentPassword, newPassword) {
   } else {
     throw new Error('No se pudo actualizar la contraseña');
   }
+}
+
+/**
+ *
+ * @param {{displayName: string|null, career: string|null, bio: string|null}}
+ * @returns {Promise<void>}
+ */
+export async function updateUser({displayName, career, bio}) {
+  try {
+    const authPromise = updateProfile(auth.currentUser, {displayName});
+
+    const firestorePromise = updateUserProfile(userData.id, {displayName, bio, career});
+
+    await Promise.all([authPromise, firestorePromise]);
+
+    setUserData({
+      displayName,
+      bio,
+      career,
+    });
+    console.log('Perfil actualizado'  );
+  } catch (error) {
+    console.log('[auth.js updateUser] Error al actualizar el perfil: ', error.code);
+    throw error;
+  }
+}
+/**
+ * Actualiza los datos, o parte de ellos, del objeto userData, y notifica a todos
+ * los observers suscritos del cambio.
+ *
+ * @param {{}} newData
+ */
+function setUserData(newData) {
+  userData = {
+    ...userData,
+    ...newData,
+  }
+
+  // Guardamos en localStorage los nuevos datos.
+  localStorage.setItem('user', JSON.stringify(userData));
+
+  notifyAll();
 }
 /**
  * Notifica a un observer de los datos actuales del usuario.

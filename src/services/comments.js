@@ -12,7 +12,7 @@ import { db } from "./firebase";
 export async function createComment(userId, postId, content) {
   try {
     await addDoc(collection(db, "comments"), {
-      userId: doc(db, "users", userId),
+      userId: userId,
       postId: doc(db, "posts", postId),
       content: content,
       createdAt: Timestamp.now(),

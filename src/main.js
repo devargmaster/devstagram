@@ -1,9 +1,17 @@
 import '../style.css'
-
-import App from './App.vue'
 import { createApp } from 'vue'
+import App from './App.vue'
 import router from './router/router'
 import '@fortawesome/fontawesome-free/css/all.css'
-const app =createApp(App);
-app.use(router);
-app.mount('#app');
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+
+let app
+const auth = getAuth()
+
+onAuthStateChanged(auth, () => {
+  if (!app) {
+    app = createApp(App)
+    app.use(router)
+    app.mount('#app')
+  }
+})

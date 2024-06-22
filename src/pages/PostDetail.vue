@@ -5,6 +5,7 @@ import { db, auth } from '../services/firebase';
 import { createComment } from '../services/comments';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
+import { getUserById}  from "../services/user-profile.js";
 
 export default {
   props: {
@@ -46,17 +47,16 @@ export default {
     const fetchComments = async () => {
       const commentsQuery = query(collection(db, "comments"), where("postId", "==", doc(db, "posts", props.id)));
       const querySnapshot = await getDocs(commentsQuery);
-      comments.value = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      comments.value = await Promise.all(querySnapshot.docs.map(async docSnapshot => {
+        const comment = {id: docSnapshot.id, ...docSnapshot.data()};
+        const user = await getUserById(comment.userId);
+        return {...comment, user};
+      }));
     };
 
     const addComment = async () => {
       if (newComment.value.trim() === '') {
         errorMessage.value = 'El comentario no puede estar vacío.';
-        return;
-      }
-
-      if (user.value.uid === post.value.userId.split('/')[1]) {
-        errorMessage.value = 'No puedes comentar en tu propia publicación.';
         return;
       }
 
@@ -105,7 +105,20 @@ export default {
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
-    return {post, comments, sortedComments, newComment, user, errorMessage, loading, addComment, formatDate, codeBlock, copyCode, handleLike};
+    return {
+      post,
+      comments,
+      sortedComments,
+      newComment,
+      user,
+      errorMessage,
+      loading,
+      addComment,
+      formatDate,
+      codeBlock,
+      copyCode,
+      handleLike
+    };
   }
 };
 </script>
@@ -114,7 +127,8 @@ export default {
   <div class="post-detail p-6 bg-gray-100 min-h-screen flex flex-col items-center">
     <div v-if="post" class="w-full max-w-4xl">
       <h1 class="text-3xl font-bold mb-4 text-center mt-4">{{ post.title }}</h1>
-      <p class="text-sm text-gray-500 mb-4 text-center">Publicado por {{ post.authorName }} el {{ formatDate(post.createdAt) }}</p>
+      <p class="text-sm text-gray-500 mb-4 text-center">Publicado por {{ post.authorName }} el
+        {{ formatDate(post.createdAt) }}</p>
       <div class="mb-4 flex justify-center">
         <div class="flex items-center mr-4">
           <button @click="handleLike(post.id)"
@@ -132,7 +146,8 @@ export default {
       <div v-if="post.sourcecode" class="relative mb-4 mx-auto">
         <div class="code-container bg-gray-100 p-4 rounded overflow-x-auto relative ">
           <pre><code ref="codeBlock" class="language-javascript">{{ post.sourcecode }}</code></pre>
-          <button @click="copyCode" class="absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
+          <button @click="copyCode"
+                  class="absolute top-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
             Copiar código
           </button>
         </div>
@@ -140,31 +155,36 @@ export default {
 
       <h2 class="text-2xl font-bold mb-4 text-center">Comentarios</h2>
       <ul class="mb-4 ml-4 mr-4 mx-auto">
-        <li v-for="comment in sortedComments" :key="comment.id" class="bg-white p-4 mb-4 rounded shadow flex items-start">
+        <li v-for="comment in sortedComments" :key="comment.id"
+            class="bg-white p-4 mb-4 rounded shadow flex items-start">
           <img :src="'/images/perfil.jpg'" alt="Avatar" class="w-12 h-12 rounded-full mr-4">
           <div class="mr-4 ml-4">
             <p class="text-sm text-gray-500 mb-1">{{ comment.authorName }} el {{ formatDate(comment.createdAt) }}</p>
+
             <p class="mr-4 ml-4">{{ comment.content }}</p>
           </div>
         </li>
       </ul>
 
-      <div v-if="user && user.uid !== post.userId.split('/')[1]" class="mt-4 mx-auto flex flex-col items-center">
+      <div v-if="user" class="mt-4 mx-auto flex flex-col items-center">
         <div class="w-full max-w-md">
           <h3 class="text-xl font-bold mb-2 text-center ">Agregar Comentario</h3>
-          <textarea v-model="newComment" class="shadow w-full appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2" placeholder="Escribe tu comentario aquí..."></textarea>
-          <button @click="addComment" :disabled="loading" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-auto block">
+          <textarea v-model="newComment"
+                    class="shadow w-full appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
+                    placeholder="Escribe tu comentario aquí..."></textarea>
+          <button @click="addComment" :disabled="loading"
+                  class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-auto block">
             Comentar
           </button>
           <p v-if="errorMessage" class="text-red-500 text-xs italic mt-2 text-center">{{ errorMessage }}</p>
         </div>
       </div>
-      <div v-else-if="user && user.uid === post.userId.split('/')[1]" class="text-center mt-4">
-        <p class="text-gray-600">No puedes comentar en tu propia publicación.</p>
-      </div>
       <div v-else class="text-center mt-4">
         <p class="text-gray-600">Debes iniciar sesión para agregar un comentario.</p>
-        <router-link class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" to="/login">Iniciar Sesión</router-link>
+        <router-link
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          to="/login">Iniciar Sesión
+        </router-link>
       </div>
     </div>
     <div v-else>
