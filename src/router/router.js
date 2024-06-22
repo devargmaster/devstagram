@@ -11,6 +11,7 @@ import PostDetail from "../pages/PostDetail.vue";
 import {getAuth} from "firebase/auth";
 import UsersProfiles from "../pages/UsersProfiles.vue";
 import MyProfileEdit from "../pages/MyProfileEdit.vue";
+import MyProfileEditPhoto from "../pages/MyProfileEditPhoto.vue";
 
 const routes = [
   { path: '/',               component: Home, },
@@ -24,6 +25,7 @@ const routes = [
     props: true,
   },
   { path: '/editar-perfil', component: MyProfileEdit },
+  { path: '/perfil/editar/foto',      component: MyProfileEditPhoto,  meta: { requiresAuth: true } },
   {
     path: '/create-post',
     name: 'CreatePost',

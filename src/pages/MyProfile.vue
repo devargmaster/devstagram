@@ -164,6 +164,7 @@ export default {
                          class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
               Editar Perfil
             </router-link>
+            <router-link class="mb-4 text-blue-700 underline" to="/perfil/editar/foto">Editar mi Foto</router-link>
           </div>
           <div class="mt-4">
             <button @click="handleLogout"
