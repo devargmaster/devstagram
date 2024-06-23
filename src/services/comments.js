@@ -1,5 +1,6 @@
-import { collection, addDoc, Timestamp, doc,query , where, getDocs} from "firebase/firestore";
+import { collection, addDoc, Timestamp, doc,query , where, getDocs,orderBy} from "firebase/firestore";
 import { db } from "./firebase";
+import {getUserProfileById} from "./user-profile.js";
 
 /**
  * Crea un nuevo comentario en Firestore.
@@ -12,11 +13,14 @@ import { db } from "./firebase";
  */
 export async function createComment(userId, authorName ,postId, content) {
   try {
+    const userProfile = await getUserProfileById(userId);
+    const authorImage = userProfile ? userProfile.photoURL : null;
     await addDoc(collection(db, "comments"), {
       userId: userId,
       postId: doc(db, "posts", postId),
       authorName: authorName,
       content: content,
+      authorImage: authorImage,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
@@ -28,7 +32,7 @@ export async function createComment(userId, authorName ,postId, content) {
 }
 export async function getCommentsByPostId(postRef) {
   const commentsCollection = collection(db, "comments");
-  const q = query(commentsCollection, where("postId", "==", postRef)); // Compara con la referencia de documento
+  const q = query(commentsCollection, where("postId", "==", postRef), orderBy("createdAt", "desc")); // Ordena los comentarios por fecha de creación en orden descendente
   const querySnapshot = await getDocs(q);
   const comments = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   console.log(comments);

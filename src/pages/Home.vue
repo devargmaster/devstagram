@@ -50,9 +50,10 @@ export default {
 
       for (let post of posts) {
         const userDoc = await getDoc(doc(db, "users", post.userId.replace('users/', '')));
+        console.log('userdatahome:',userDoc.data());
         if (userDoc.exists()) {
           post.authorName = userDoc.data().name;
-          post.authorAvatar = userDoc.data().avatar;
+          post.authorAvatar = userDoc.data().photoUrl;
         } else {
           post.authorName = 'Anónimo';
           post.authorAvatar = '/images/perfil.jpg';
@@ -159,7 +160,7 @@ export default {
         <li v-for="post in paginatedPosts" :key="post.id" class="bg-white p-6 mb-6 rounded-lg shadow-md relative">
           <div class="flex items-center mb-4">
             <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
-              <img :src="post.authorAvatar || '/images/perfil.jpg'" alt="Avatar"
+              <img :src="post.authorImage || '/images/perfil.jpg'" alt="Avatar"
                    class="h-10 w-10 rounded-full object-cover">
             </div>
             <div class="ml-4">

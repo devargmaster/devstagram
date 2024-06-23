@@ -1,5 +1,6 @@
 import {collection, addDoc, Timestamp, query, where, getDocs, getDoc, doc} from "firebase/firestore";
 import { db } from "./firebase";
+import {getUserProfileById} from "./user-profile.js";
 
 /**
  * Crea una nueva publicación en Firestore.
@@ -13,11 +14,14 @@ import { db } from "./firebase";
  */
 export async function createPost(userId, content,title, sourcecode, authorName) {
   try {
+    const userProfile = await getUserProfileById(userId);
+    const authorImage = userProfile ? userProfile.photoURL : null;
     await addDoc(collection(db, "posts"), {
       userId: userId,
       title: title,
       content: content,
       authorName: authorName,
+      authorImage: authorImage,
       sourcecode: sourcecode,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),

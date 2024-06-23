@@ -21,23 +21,21 @@ export async function getUserById(userId) {
 /**
  * Traemos los datos del usuario con él, id provisto.
  *
- * @param {string} id
+ * @param {string} userId
  * @returns {Promise}
  */
-export async function getUserProfileById(id) {
+export async function getUserProfileById(userId) {
   try {
-    const refUser = doc(db, `users/${id}`);
-
-    // TODO: Manejar el error.
+    const refUser = doc(db, `users/${userId}`);
     const userDoc = await getDoc(refUser);
-
+    console.log("[user-profile.js getUserProfileById] userDoc: ", userDoc.data());
     return {
-      id: userDoc.id, // la propiedad "id" del documento retorna el id del mismo.
+      id: userDoc.id,
       email: userDoc.data().email,
       displayName: userDoc.data().displayName,
       bio: userDoc.data().bio,
       career: userDoc.data().career,
-      // photoURL: userDoc.data().photoURL,
+      photoURL: userDoc.data().photoURL,
     }
   } catch (error) {
     console.error("[user-profile.js getUserProfileById] Error: ", error);

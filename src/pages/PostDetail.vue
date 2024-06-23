@@ -5,7 +5,7 @@ import { db, auth } from '../services/firebase';
 
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
-import { getUserById}  from "../services/user-profile.js";
+import { getUserProfileById } from "../services/user-profile.js";
 import {createComment, getCommentsByPostId} from "../services/comments.js";
 
 export default {
@@ -18,6 +18,7 @@ export default {
   setup(props) {
     const post = ref(null);
     const user = ref(null);
+    const userProfile = ref(null); // Añade esta línea
     const comments = ref([]);
     const errorMessage = ref('');
     const loading = ref(false);
@@ -40,24 +41,26 @@ export default {
             Prism.highlightElement(codeBlock.value);
           }
         });
-        if (props.id) {
-          const postRef = doc(db, "posts", props.id); // Crea una referencia de documento para postId
-          const commentsData = await getCommentsByPostId(postRef); // Pasa la referencia de documento a getCommentsByPostId
-          comments.value = commentsData;
-          console.log(comments.value);
-        }
+        const loadComments = async () => {
+          if (props.id) {
+            const postRef = doc(db, "posts", props.id);
+            const commentsData = await getCommentsByPostId(postRef);
+            comments.value = commentsData;
+            console.log(comments.value);
+          }
+        };
+        loadComments();
       } else {
         console.log("No se encuentra el documento!");
       }
 
-      auth.onAuthStateChanged(currentUser => {
+      auth.onAuthStateChanged(async currentUser => {
         user.value = currentUser;
+        if (currentUser) {
+          userProfile.value = await getUserProfileById(currentUser.uid); // Añade esta línea
+        }
       });
     });
-
-
-      loading.value = true;
-
 
     const handleLike = async (postId) => {
       if (user.value) {
@@ -80,10 +83,10 @@ export default {
       });
     };
 
-
     return {
       post,
       user,
+      userProfile, // Añade esta línea
       comments,
       errorMessage,
       loading,
@@ -128,7 +131,7 @@ export default {
       <h2 class="text-2xl font-bold mb-4">Comentarios</h2>
       <div v-for="comment in comments" :key="comment.id" class="mb-4 bg-gray-100 p-4 rounded shadow">
         <p class="mb-2">{{ comment.content }}</p>
-        <p class="text-sm text-gray-500">Publicado por: {{ comment.authorName }}</p>
+        <p class="text-sm text-gray-500">Publicado por <img :src="comment.authorImage ? comment.authorImage : '/images/perfil.jpg'" alt="Imagen del autor" class="inline-block rounded-full h-8 w-8"> {{ comment.authorName }} - {{ new Date(comment.createdAt.seconds * 1000).toLocaleDateString() }}</p>
       </div>
       <div v-if="user">
         <h2 class="text-2xl font-bold mb-4">Agregar un comentario</h2>
