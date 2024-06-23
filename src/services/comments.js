@@ -15,7 +15,7 @@ export async function createComment(userId, authorName ,postId, content) {
   try {
     const userProfile = await getUserProfileById(userId);
     const authorImage = userProfile ? userProfile.photoURL : null;
-    await addDoc(collection(db, "comments"), {
+    const newComment = {
       userId: userId,
       postId: doc(db, "posts", postId),
       authorName: authorName,
@@ -23,8 +23,10 @@ export async function createComment(userId, authorName ,postId, content) {
       authorImage: authorImage,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
-    });
+    };
+    const docRef = await addDoc(collection(db, "comments"), newComment);
     console.log("Comentario creado exitosamente.");
+    return { id: docRef.id, ...newComment };
   } catch (error) {
     console.error("Error al crear el comentario: ", error);
     throw error;

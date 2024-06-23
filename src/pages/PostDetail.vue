@@ -26,7 +26,8 @@ export default {
     const newCommentContent = ref('');
     const handleCommentSubmit = async () => {
       if (newCommentContent.value.trim() !== '') {
-        await createComment(user.value.uid, user.value.displayName, props.id, newCommentContent.value);
+        const newComment = await createComment(user.value.uid, user.value.displayName, props.id, newCommentContent.value);
+        comments.value.push(newComment);
         newCommentContent.value = '';
       }
     };

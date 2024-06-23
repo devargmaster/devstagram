@@ -180,16 +180,21 @@ export default {
         <h2 class="text-2xl font-bold mb-4">Mis publicaciones</h2>
         <ul>
           <li v-for="post in paginatedPosts" :key="post.id" class="bg-gray-50 p-4 mb-4 rounded shadow relative">
-            <h3 class="text-xl font-bold mb-2">{{ post.title }}</h3>
-            <p>{{ post.content }}</p>
+            <router-link :to="`/post-detail/${post.id}`" class="block">
+              <h3 class="text-xl font-bold mb-2">{{ post.title }}</h3>
+              <p>{{ post.content }}</p>
+            </router-link>
             <button @click="confirmDelete(post.id)"
                     class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline">
               Eliminar
             </button>
+            <router-link :to="`/post/${post.id}/edit`"
+                         class="absolute top-2 right-24 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:shadow-outline">
+              Editar
+            </router-link>
           </li>
         </ul>
       </div>
-
       <div v-if="totalPages > 1" class="flex justify-between mt-4">
         <button @click="prevPage" :disabled="currentPage === 1" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
           Anterior

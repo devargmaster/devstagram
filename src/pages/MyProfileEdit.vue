@@ -1,7 +1,6 @@
 <script>
 import MainH1 from '../components/MainH1.vue';
 import MainLabel from '../components/MainLabel.vue';
-// import MainInput from '../components/MainInput.vue';
 import MainButton from '../components/MainButton.vue';
 import { subscribeToAuth, updateUser } from '../services/auth';
 
@@ -24,7 +23,6 @@ export default {
         displayName: '',
         bio: '',
         career: '',
-        // photoURL: null,
       },
       editingProfile: false,
     }
@@ -46,8 +44,8 @@ export default {
           bio: this.profileData.bio,
           career: this.profileData.career,
         });
+        this.$router.push('/perfil');
       } catch (error) {
-        // TODO
         console.error('[MyProfileEdit handleSubmit] Error al editar el perfil: ', error);
       }
       this.editingProfile = false;
@@ -55,10 +53,12 @@ export default {
   },
   mounted() {
     this.unsubscribeFromAuth = subscribeToAuth(newUserData => {
-      this.authUser = newUserData;
-      this.profileData.displayName = this.authUser.displayName;
-      this.profileData.career = this.authUser.career;
-      this.profileData.bio = this.authUser.bio;
+      if (newUserData) {
+        this.authUser = newUserData;
+        this.profileData.displayName = this.authUser.displayName || '';
+        this.profileData.career = this.authUser.career || '';
+        this.profileData.bio = this.authUser.bio || '';
+      }
     });
   },
   unmounted() {
