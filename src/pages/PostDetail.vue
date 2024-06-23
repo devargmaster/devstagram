@@ -2,10 +2,11 @@
 import { onMounted, ref, computed, nextTick } from 'vue';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
-import { createComment } from '../services/comments';
+
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 import { getUserById}  from "../services/user-profile.js";
+import {createComment, getCommentsByPostId} from "../services/comments.js";
 
 export default {
   props: {
@@ -16,25 +17,35 @@ export default {
   },
   setup(props) {
     const post = ref(null);
-    const comments = ref([]);
-    const newComment = ref('');
     const user = ref(null);
+    const comments = ref([]);
     const errorMessage = ref('');
     const loading = ref(false);
     const codeBlock = ref(null);
-
+    const newCommentContent = ref('');
+    const handleCommentSubmit = async () => {
+      if (newCommentContent.value.trim() !== '') {
+        await createComment(user.value.uid, user.value.displayName, props.id, newCommentContent.value);
+        newCommentContent.value = '';
+      }
+    };
     onMounted(async () => {
       const docRef = doc(db, "posts", props.id);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
         post.value = {...docSnap.data(), id: docSnap.id};
-        await fetchComments();
         nextTick(() => {
           if (codeBlock.value) {
             Prism.highlightElement(codeBlock.value);
           }
         });
+        if (props.id) {
+          const postRef = doc(db, "posts", props.id); // Crea una referencia de documento para postId
+          const commentsData = await getCommentsByPostId(postRef); // Pasa la referencia de documento a getCommentsByPostId
+          comments.value = commentsData;
+          console.log(comments.value);
+        }
       } else {
         console.log("No se encuentra el documento!");
       }
@@ -44,35 +55,9 @@ export default {
       });
     });
 
-    const fetchComments = async () => {
-      const commentsQuery = query(collection(db, "comments"), where("postId", "==", doc(db, "posts", props.id)));
-      const querySnapshot = await getDocs(commentsQuery);
-      comments.value = await Promise.all(querySnapshot.docs.map(async docSnapshot => {
-        const comment = {id: docSnapshot.id, ...docSnapshot.data()};
-        const user = await getUserById(comment.userId);
-        return {...comment, user};
-      }));
-    };
-
-    const addComment = async () => {
-      if (newComment.value.trim() === '') {
-        errorMessage.value = 'El comentario no puede estar vacío.';
-        return;
-      }
 
       loading.value = true;
 
-      try {
-        await createComment(user.value.uid, props.id, newComment.value);
-        newComment.value = '';
-        errorMessage.value = '';
-        await fetchComments();
-      } catch (error) {
-        errorMessage.value = 'Error al agregar el comentario: ' + error.message;
-      } finally {
-        loading.value = false;
-      }
-    };
 
     const handleLike = async (postId) => {
       if (user.value) {
@@ -95,29 +80,18 @@ export default {
       });
     };
 
-    const sortedComments = computed(() => {
-      return comments.value.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
-    });
-
-    const formatDate = (timestamp) => {
-      if (!timestamp) return '';
-      const date = new Date(timestamp.seconds * 1000);
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-    };
 
     return {
       post,
-      comments,
-      sortedComments,
-      newComment,
       user,
+      comments,
       errorMessage,
       loading,
-      addComment,
-      formatDate,
       codeBlock,
       copyCode,
-      handleLike
+      handleLike,
+      newCommentContent,
+      handleCommentSubmit
     };
   }
 };
@@ -125,10 +99,10 @@ export default {
 
 <template>
   <div class="post-detail p-6 bg-gray-100 min-h-screen flex flex-col items-center">
-    <div v-if="post" class="w-full max-w-4xl">
+    <div v-if="post" class="w-full max-w-4xl bg-white p-6 rounded shadow">
       <h1 class="text-3xl font-bold mb-4 text-center mt-4">{{ post.title }}</h1>
       <p class="text-sm text-gray-500 mb-4 text-center">Publicado por {{ post.authorName }} el
-        {{ formatDate(post.createdAt) }}</p>
+      </p>
       <div class="mb-4 flex justify-center">
         <div class="flex items-center mr-4">
           <button @click="handleLike(post.id)"
@@ -136,9 +110,7 @@ export default {
             <i class="fas fa-thumbs-up mr-2"></i> Like ({{ post.likesCount.length }})
           </button>
         </div>
-        <div class="flex items-center">
-          <i class="fas fa-comments mr-2"></i> Comentarios: {{ comments.length }}
-        </div>
+
       </div>
 
       <div v-html="post.content" class="prose mb-4 mx-auto bg-white p-6 rounded shadow mb-6"></div>
@@ -153,39 +125,23 @@ export default {
         </div>
       </div>
 
-      <h2 class="text-2xl font-bold mb-4 text-center">Comentarios</h2>
-      <ul class="mb-4 ml-4 mr-4 mx-auto">
-        <li v-for="comment in sortedComments" :key="comment.id"
-            class="bg-white p-4 mb-4 rounded shadow flex items-start">
-          <img :src="'/images/perfil.jpg'" alt="Avatar" class="w-12 h-12 rounded-full mr-4">
-          <div class="mr-4 ml-4">
-            <p class="text-sm text-gray-500 mb-1">{{ comment.authorName }} el {{ formatDate(comment.createdAt) }}</p>
-
-            <p class="mr-4 ml-4">{{ comment.content }}</p>
-          </div>
-        </li>
-      </ul>
-
-      <div v-if="user" class="mt-4 mx-auto flex flex-col items-center">
-        <div class="w-full max-w-md">
-          <h3 class="text-xl font-bold mb-2 text-center ">Agregar Comentario</h3>
-          <textarea v-model="newComment"
-                    class="shadow w-full appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
-                    placeholder="Escribe tu comentario aquí..."></textarea>
-          <button @click="addComment" :disabled="loading"
-                  class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-auto block">
-            Comentar
-          </button>
-          <p v-if="errorMessage" class="text-red-500 text-xs italic mt-2 text-center">{{ errorMessage }}</p>
-        </div>
+      <h2 class="text-2xl font-bold mb-4">Comentarios</h2>
+      <div v-for="comment in comments" :key="comment.id" class="mb-4 bg-gray-100 p-4 rounded shadow">
+        <p class="mb-2">{{ comment.content }}</p>
+        <p class="text-sm text-gray-500">Publicado por: {{ comment.authorName }}</p>
       </div>
-      <div v-else class="text-center mt-4">
-        <p class="text-gray-600">Debes iniciar sesión para agregar un comentario.</p>
-        <router-link
-          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          to="/login">Iniciar Sesión
-        </router-link>
+      <div v-if="user">
+        <h2 class="text-2xl font-bold mb-4">Agregar un comentario</h2>
+        <form @submit.prevent="handleCommentSubmit" class="flex flex-col space-y-4">
+          <textarea v-model="newCommentContent" placeholder="Escribe tu comentario aquí..." class="p-2 rounded border"></textarea>
+          <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Enviar comentario</button>
+        </form>
       </div>
+      <div v-else>
+        <p class="mb-2">Debes iniciar sesión para agregar un comentario.</p>
+        <router-link to="/login" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Iniciar sesión</router-link>
+      </div>
+
     </div>
     <div v-else>
       <p>Cargando publicación...</p>

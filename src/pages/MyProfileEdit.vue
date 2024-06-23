@@ -31,6 +31,13 @@ export default {
   },
   methods: {
     async handleSubmit() {
+      if (!this.profileData.displayName || !this.profileData.displayName.trim() ||
+        !this.profileData.bio || !this.profileData.bio.trim() ||
+        !this.profileData.career || !this.profileData.career.trim()) {
+        alert('Por favor, rellena todos los campos del formulario.');
+        return;
+      }
+
       this.editingProfile = true;
       console.log('Actualizando perfil con los siguientes datos:', this.profileData);
       try {

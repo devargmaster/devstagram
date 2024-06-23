@@ -2,6 +2,11 @@ import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
 
 export async function getUserById(userId) {
+  if (typeof userId !== 'string') {
+    console.error('getUserById error: userId debe ser una cadena de texto, se obtuvo:', userId);
+    return null;
+  }
+
   const userDoc = doc(db, "users", userId);
   const userSnapshot = await getDoc(userDoc);
   if (userSnapshot.exists()) {
@@ -14,7 +19,7 @@ export async function getUserById(userId) {
 
 
 /**
- * Traemos los datos del usuario con el id provisto.
+ * Traemos los datos del usuario con él, id provisto.
  *
  * @param {string} id
  * @returns {Promise}

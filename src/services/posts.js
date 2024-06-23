@@ -1,4 +1,4 @@
-import {collection, addDoc, Timestamp, query, where, getDocs} from "firebase/firestore";
+import {collection, addDoc, Timestamp, query, where, getDocs, getDoc, doc} from "firebase/firestore";
 import { db } from "./firebase";
 
 /**
@@ -14,7 +14,7 @@ import { db } from "./firebase";
 export async function createPost(userId, content,title, sourcecode, authorName) {
   try {
     await addDoc(collection(db, "posts"), {
-      userId: `users/${userId}`,
+      userId: userId,
       title: title,
       content: content,
       authorName: authorName,
@@ -36,6 +36,16 @@ export async function getPostsByUser(userId) {
   const querySnapshot = await getDocs(q);
   const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   return posts;
+}
+export async function getPostById(postId) {
+  const postDoc = doc(db, "posts", postId);
+  const postSnapshot = await getDoc(postDoc);
+  if (postSnapshot.exists()) {
+    return { id: postSnapshot.id, ...postSnapshot.data() };
+  } else {
+    console.log("No such post!");
+    return null;
+  }
 }
 export const updatePost = async (postId, uid, content, title, sourcecode, displayName) => {
   // Aquí va tu lógica para actualizar la publicación en la base de datos

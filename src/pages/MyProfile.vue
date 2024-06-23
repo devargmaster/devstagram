@@ -149,7 +149,7 @@ export default {
     <div v-else-if="userProfile" class="bg-white p-6 rounded-lg shadow-lg">
       <div class="flex flex-col items-center mb-6">
         <div class="w-1/4">
-          <img src="/images/perfil.jpg" alt="Foto de perfil" class="rounded-full w-full">
+          <img :src="userProfile ? userProfile.photoURL : '/images/perfil.jpg'" alt="Foto de perfil" class="rounded-full w-full">
         </div>
         <div class="w-3/4 pl-6 text-center">
           <h2 class="text-3xl font-bold mb-2">Perfil de: {{ userProfile.name }}</h2>
@@ -164,7 +164,7 @@ export default {
                          class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
               Editar Perfil
             </router-link>
-            <router-link class="mb-4 text-blue-700 underline" to="/perfil/editar/foto">Editar mi Foto</router-link>
+            <router-link class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block" to="/perfil/editar/foto">Editar mi Foto</router-link>
           </div>
           <div class="mt-4">
             <button @click="handleLogout"
