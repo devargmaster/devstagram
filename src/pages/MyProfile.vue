@@ -55,7 +55,7 @@ export default {
           } else {
             console.log('No hay datos de perfil del usuario!');
           }
-          const postsQuery = query(collection(db, "posts"), where("userId", "==", `users/${user.uid}`));
+          const postsQuery = query(collection(db, "posts"), where("userId", "==", user.uid));
           const querySnapshot = await getDocs(postsQuery);
           this.myPosts = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
           this.loading = false;
