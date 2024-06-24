@@ -1,34 +1,40 @@
 <script>
 import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { getAllUsers } from '../services/user-profile';
 import { getPostsByUser } from '../services/posts';
-import { getUserById } from '../services/user-profile';
 
 export default {
   setup() {
-    const route = useRoute();
-    const user = ref(null);
-    const posts = ref([]);
+    const usersWithPosts = ref([]);
 
     onMounted(async () => {
-      const userId = route.params.userId;
-      user.value = await getUserById(userId);
-      posts.value = await getPostsByUser(userId);
+      const allUsers = await getAllUsers();
+      for (const user of allUsers) {
+        console.log('user', user);
+        const posts = await getPostsByUser(user.id);
+        if (posts.length > 0) {
+          usersWithPosts.value.push(user);
+        }
+      }
     });
 
     return {
-      user,
-      posts,
+      usersWithPosts,
     };
   },
 };
 </script>
+
 <template>
-  <div>
-    <h1 v-if="user">{{ user.name }}'s Profile</h1>
-    <div v-for="post in posts" :key="post.id">
-      <h2>{{ post.title }}</h2>
-      <p>{{ post.content }}</p>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div v-for="user in usersWithPosts" :key="user.id" class="rounded overflow-hidden shadow-lg p-6 bg-white">
+      <img class="w-full h-64 object-cover" :src="user.photoURL" alt="Profile photo">
+      <div class="px-6 py-4">
+        <div class="font-bold text-xl mb-2">{{ user.displayName }}</div>
+        <p class="text-gray-700 text-base">
+          {{ user.bio }}
+        </p>
+      </div>
     </div>
   </div>
 </template>

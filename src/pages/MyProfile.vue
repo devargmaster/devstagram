@@ -149,7 +149,7 @@ export default {
     <div v-else-if="userProfile" class="bg-white p-6 rounded-lg shadow-lg">
       <div class="flex flex-col items-center mb-6">
         <div class="w-1/4">
-          <img :src="userProfile ? userProfile.photoURL : '/images/perfil.jpg'" alt="Foto de perfil" class="rounded-full w-full">
+          <img :src="userProfile.photoURL || '/images/perfil.jpg'" alt="Foto de perfil" class="rounded-full w-full">
         </div>
         <div class="w-3/4 pl-6 text-center">
           <h2 class="text-3xl font-bold mb-2">Perfil de: {{ userProfile.name }}</h2>
@@ -204,22 +204,16 @@ export default {
           Siguiente
         </button>
       </div>
-
-      <div class="flex justify-center">
-        <router-link to="/create-post"
-                     class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-          Crear publicación
-        </router-link>
-      </div>
     </div>
-    <div v-else class="text-center">
-      <p class="text-gray-600">Cargando...</p>
-    </div>
-
-    <modal v-if="showModal"
-           :title="modalTitle"
-           :message="modalMessage"
-           @confirm="deletePost"
-           @cancel="showModal = false"></modal>
   </div>
+  <Modal v-if="showModal" @close="showModal = false" @confirm="deletePost">
+    <template v-slot:title>{{ modalTitle }}</template>
+    <template v-slot:message>{{ modalMessage }}</template>
+  </Modal>
 </template>
+
+<style scoped>
+.alert {
+  width: 100%;
+}
+</style>

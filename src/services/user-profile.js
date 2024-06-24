@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {collection, doc, getDoc, getDocs, setDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase";
 
 export async function getUserById(userId) {
@@ -65,4 +65,11 @@ export async function updateUserProfile(id, data) {
   const refUser = doc(db, `users/${id}`);
 
   await updateDoc(refUser, data);
+}
+export async function getAllUsers() {
+  const usersCollection = collection(db, "users");
+  const userSnapshot = await getDocs(usersCollection);
+  console.log("[user-profile.js getAllUsers] userSnapshot: ", userSnapshot.docs.map(doc => doc.data()));
+  const users = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return users;
 }

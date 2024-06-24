@@ -44,24 +44,28 @@ export default {
   methods: {
     async fetchPosts() {
       this.loading = true;
-      const postsCollection = collection(db, "posts");
-      const postsSnapshot = await getDocs(postsCollection);
-      const posts = postsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      try {
+        const postsCollection = collection(db, "posts");
+        const postsSnapshot = await getDocs(postsCollection);
+        const posts = postsSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
 
-      for (let post of posts) {
-        const userDoc = await getDoc(doc(db, "users", post.userId.replace('users/', '')));
-        console.log('userdatahome:',userDoc.data());
-        if (userDoc.exists()) {
-          post.authorName = userDoc.data().name;
-          post.authorAvatar = userDoc.data().photoUrl;
-        } else {
-          post.authorName = 'Anónimo';
-          post.authorAvatar = '/images/perfil.jpg';
+        for (let post of posts) {
+          const userDoc = await getDoc(doc(db, "users", post.userId.replace('users/', '')));
+          if (userDoc.exists()) {
+            post.authorName = userDoc.data().name;
+            post.authorAvatar = userDoc.data().photoURL;
+          } else {
+            post.authorName = 'Anónimo';
+            post.authorAvatar = '/images/perfil.jpg';
+          }
         }
-      }
 
-      this.posts = posts;
-      this.loading = false;
+        this.posts = posts;
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      } finally {
+        this.loading = false;
+      }
     },
     checkAuthState() {
       onAuthStateChanged(auth, async (user) => {
@@ -159,17 +163,17 @@ export default {
       <ul v-if="!loading">
         <li v-for="post in paginatedPosts" :key="post.id" class="bg-white p-6 mb-6 rounded-lg shadow-md relative">
           <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
-              <img :src="post.authorImage || '/images/perfil.jpg'" alt="Avatar"
-                   class="h-10 w-10 rounded-full object-cover">
+            <div v-if="post.authorAvatar" class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
+              <img :src="post.authorAvatar" alt="Avatar" class="h-10 w-10 rounded-full object-cover">
+            </div>
+            <div v-else class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
+              <img src="/images/perfil.jpg" alt="Avatar" class="h-10 w-10 rounded-full object-cover">
             </div>
             <div class="ml-4">
               <h3 class="text-lg font-bold">
                 <router-link :to="{ name: 'PostDetail', params: { id: post.id } }">{{ post.title }}</router-link>
               </h3>
-              <p class="text-sm text-gray-500">Publicado por {{ post.authorName }} el {{
-                  formatDate(post.createdAt)
-                }}</p>
+              <p class="text-sm text-gray-500">Publicado por {{ post.authorName }} el {{ formatDate(post.createdAt) }}</p>
             </div>
           </div>
           <p class="text-gray-800 mb-4">{{ post.content }}</p>
@@ -179,44 +183,42 @@ export default {
               <i class="fas fa-thumbs-up mr-2"></i> Like ({{ post.likesCount.length }})
             </button>
             <button @click="handleComment(post.id)"
-                    class="flex items-center bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    class="flex items-center bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
               <i class="fas fa-comment mr-2"></i> Comentar
             </button>
           </div>
         </li>
       </ul>
-      <ul v-else>
-        <li v-for="n in postsPerPage" :key="n" class="bg-white p-6 mb-6 rounded-lg shadow-md relative">
-          <skeleton-loader/>
-        </li>
-      </ul>
-      <div class="flex justify-between mt-4">
-        <div v-if="totalPages > 1" class="flex justify-between mt-4">
-          <button @click="prevPage" :disabled="currentPage === 1"
-                  class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-            Anterior
-          </button>
-          <p class="ml-4 mr-4">Página {{ currentPage }} de {{ totalPages }}</p>
-          <button @click="nextPage" :disabled="currentPage === totalPages"
-                  class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-            Siguiente
-          </button>
-        </div>
+      <skeleton-loader v-else/>
+      <div class="flex justify-center mt-4">
+        <button @click="prevPage" :disabled="currentPage === 1" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-l focus:outline-none">
+          Anterior
+        </button>
+        <span class="px-4 py-2">{{ currentPage }} / {{ totalPages }}</span>
+        <button @click="nextPage" :disabled="currentPage === totalPages" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-r focus:outline-none">
+          Siguiente
+        </button>
       </div>
     </div>
-    <modal v-if="showLoginModal"
-           :title="modalTitle"
-           :message="modalMessage"
-           @confirm="redirectToLogin"
-           @cancel="showLoginModal = false"></modal>
-    <comment-modal v-if="showCommentModal"
-                   :title="commentModalTitle"
-                   @confirm="addComment"
-                   @cancel="showCommentModal = false">
+    <modal v-if="showLoginModal" @close="showLoginModal = false">
+      <h3 slot="header">{{ modalTitle }}</h3>
+      <p slot="body">{{ modalMessage }}</p>
+      <div slot="footer">
+        <button @click="showLoginModal = false" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none">Cancelar</button>
+        <button @click="redirectToLogin" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none">Iniciar Sesión</button>
+      </div>
+    </modal>
+    <comment-modal v-if="showCommentModal" @close="showCommentModal = false">
+      <h3 slot="header">{{ commentModalTitle }}</h3>
+      <textarea v-model="newComment" class="w-full h-24 p-2 border border-gray-300 rounded"></textarea>
+      <div slot="footer">
+        <button @click="showCommentModal = false" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none">Cancelar</button>
+        <button @click="addComment(newComment)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none">Agregar Comentario</button>
+      </div>
     </comment-modal>
   </div>
 </template>
 
-<style>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
+<style scoped>
+/* Estilos adicionales aquí */
 </style>
