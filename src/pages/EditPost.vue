@@ -14,6 +14,7 @@ export default {
     const post = ref(null);
     const postTitle = ref('');
     const postContent = ref('');
+    const postSourceCode = ref(''); // Nuevo campo para sourcecode
     const user = ref(null);
 
     onMounted(async () => {
@@ -22,6 +23,7 @@ export default {
         post.value = postData;
         postTitle.value = postData.title;
         postContent.value = postData.content;
+        postSourceCode.value = postData.sourcecode; // Inicializa sourcecode
       }
 
       auth.onAuthStateChanged(currentUser => {
@@ -31,7 +33,19 @@ export default {
 
     const handlePostUpdate = async () => {
       if (user.value && user.value.uid === post.value.userId) {
-        await updatePost(props.id, postTitle.value, postContent.value);
+        // Verifica si los campos son undefined
+        if (postTitle.value === undefined || postContent.value === undefined || postSourceCode.value === undefined) {
+          throw new Error("Los campos 'title', 'content' y 'sourcecode' no pueden ser undefined");
+        }
+
+        // Crea un objeto postData con los valores de los campos
+        const postData = {
+          title: postTitle.value,
+          content: postContent.value,
+          sourcecode: postSourceCode.value // Añade sourcecode al objeto
+        };
+
+        await updatePost(props.id, postData);
         alert('Publicación actualizada exitosamente');
       } else {
         alert('No tienes permiso para editar esta publicación');
@@ -42,6 +56,7 @@ export default {
       post,
       postTitle,
       postContent,
+      postSourceCode, // Retorna sourcecode
       handlePostUpdate
     };
   }
@@ -55,6 +70,7 @@ export default {
       <form @submit.prevent="handlePostUpdate" class="flex flex-col space-y-4">
         <input v-model="postTitle" type="text" placeholder="Título" class="p-2 rounded border">
         <textarea v-model="postContent" placeholder="Contenido" class="p-2 rounded border"></textarea>
+        <textarea v-model="postSourceCode" placeholder="Código fuente" class="p-2 rounded border"></textarea> <!-- Nuevo campo para sourcecode -->
         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Actualizar Publicación</button>
       </form>
     </div>

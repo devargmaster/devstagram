@@ -39,7 +39,7 @@ export async function createPost(userId, content,title, sourcecode, authorName) 
 }
 export async function getPostsByUser(userId) {
   const postsCollection = collection(db, "posts");
-  const q = query(postsCollection, where("userId", "==", `users/${userId}`));
+  const q = query(postsCollection, where("userId", "==", userId));
   const querySnapshot = await getDocs(q);
   const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   return posts;
@@ -50,10 +50,11 @@ export async function getPostById(postId) {
   if (postSnapshot.exists()) {
     return { id: postSnapshot.id, ...postSnapshot.data() };
   } else {
-    console.log("No such post!");
+    console.log("No se encuentra la publicacion!");
     return null;
   }
 }
+
 
 /**
  * Actualiza una publicación existente en Firestore.
