@@ -158,13 +158,19 @@ export default {
           <div class="flex justify-center space-x-4 mb-4">
             <router-link to="/cambiar-contrasena"
                          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
-              Cambiar contraseña
+              <i class="fas fa-key"></i> Cambiar contraseña
             </router-link>
             <router-link to="/editar-perfil"
                          class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
-              Editar Perfil
+              <i class="fas fa-user-edit"></i> Editar Perfil
             </router-link>
-            <router-link class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block" to="/perfil/editar/foto">Editar mi Foto</router-link>
+            <router-link class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block" to="/perfil/editar/foto">
+              <i class="fas fa-camera"></i> Editar mi Foto
+            </router-link>
+            <router-link to="/create-post"
+                         class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block">
+              <i class="fas fa-plus"></i> Nueva Publicación
+            </router-link>
           </div>
           <div class="mt-4">
             <button @click="handleLogout"

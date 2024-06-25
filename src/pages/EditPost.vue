@@ -14,16 +14,16 @@ export default {
     const post = ref(null);
     const postTitle = ref('');
     const postContent = ref('');
-    const postSourceCode = ref(''); // Nuevo campo para sourcecode
+    const postSourceCode = ref('');
     const user = ref(null);
-
+    const postImage = ref(null);
     onMounted(async () => {
       const postData = await getPostById(props.id);
       if (postData) {
         post.value = postData;
         postTitle.value = postData.title;
         postContent.value = postData.content;
-        postSourceCode.value = postData.sourcecode; // Inicializa sourcecode
+        postSourceCode.value = postData.sourcecode;
       }
 
       auth.onAuthStateChanged(currentUser => {
@@ -31,18 +31,27 @@ export default {
       });
     });
 
+    const handleImageUpload = async (e) => {
+      const file = e.target.files[0];
+      const storageRef = storage.ref();
+      const fileRef = storageRef.child(file.name);
+      await fileRef.put(file);
+      postImage.value = await fileRef.getDownloadURL();
+    };
+
     const handlePostUpdate = async () => {
       if (user.value && user.value.uid === post.value.userId) {
-        // Verifica si los campos son undefined
+
         if (postTitle.value === undefined || postContent.value === undefined || postSourceCode.value === undefined) {
           throw new Error("Los campos 'title', 'content' y 'sourcecode' no pueden ser undefined");
         }
 
-        // Crea un objeto postData con los valores de los campos
+
         const postData = {
           title: postTitle.value,
           content: postContent.value,
-          sourcecode: postSourceCode.value // Añade sourcecode al objeto
+          sourcecode: postSourceCode.value,
+          image : postImage.value
         };
 
         await updatePost(props.id, postData);
@@ -56,7 +65,8 @@ export default {
       post,
       postTitle,
       postContent,
-      postSourceCode, // Retorna sourcecode
+      postImage,
+      postSourceCode,
       handlePostUpdate
     };
   }
