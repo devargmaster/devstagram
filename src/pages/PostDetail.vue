@@ -24,6 +24,14 @@ export default {
     const loading = ref(false);
     const codeBlock = ref(null);
     const newCommentContent = ref('');
+
+    const formatDate = (timestamp) => {
+      const date = timestamp.toDate();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${day}/${month}/${year}`;
+    };
     const handleCommentSubmit = async () => {
       if (newCommentContent.value.trim() !== '') {
         const newComment = await createComment(user.value.uid, user.value.displayName, props.id, newCommentContent.value);
@@ -58,7 +66,7 @@ export default {
       auth.onAuthStateChanged(async currentUser => {
         user.value = currentUser;
         if (currentUser) {
-          userProfile.value = await getUserProfileById(currentUser.uid); // Añade esta línea
+          userProfile.value = await getUserProfileById(currentUser.uid);
         }
       });
     });
@@ -95,7 +103,8 @@ export default {
       copyCode,
       handleLike,
       newCommentContent,
-      handleCommentSubmit
+      handleCommentSubmit,
+      formatDate
     };
   }
 };
@@ -105,16 +114,17 @@ export default {
   <div class="post-detail p-6 bg-gray-100 min-h-screen flex flex-col items-center">
     <div v-if="post" class="w-full max-w-4xl bg-white p-6 rounded shadow">
       <h1 class="text-3xl font-bold mb-4 text-center mt-4">{{ post.title }}</h1>
-      <p class="text-sm text-gray-500 mb-4 text-center">Publicado por {{ post.authorName }} el
-      </p>
-      <div class="mb-4 flex justify-center">
-        <div class="flex items-center mr-4">
+      <p class="text-sm text-gray-500 text-center">Publicado por {{ post.authorName }} el {{ formatDate(post.createdAt) }}</p>
+      <div class="mb-4 flex flex-col items-center">
+        <div>
+          <img :src="post.postImage" alt="Imagen del post" class="w-48 h-48 object-cover" />
+        </div>
+        <div class="flex items-center mt-4">
           <button @click="handleLike(post.id)"
                   class="flex items-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
             <i class="fas fa-thumbs-up mr-2"></i> Like ({{ post.likesCount.length }})
           </button>
         </div>
-
       </div>
 
       <div v-html="post.content" class="prose mb-4 mx-auto bg-white p-6 rounded shadow mb-6"></div>
@@ -137,6 +147,7 @@ export default {
       <div v-if="user">
         <h2 class="text-2xl font-bold mb-4">Agregar un comentario</h2>
         <form @submit.prevent="handleCommentSubmit" class="flex flex-col space-y-4">
+          en
           <textarea v-model="newCommentContent" placeholder="Escribe tu comentario aquí..." class="p-2 rounded border"></textarea>
           <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Enviar comentario</button>
         </form>

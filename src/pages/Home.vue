@@ -218,7 +218,3 @@ export default {
     </comment-modal>
   </div>
 </template>
-
-<style scoped>
-/* Estilos adicionales aquí */
-</style>

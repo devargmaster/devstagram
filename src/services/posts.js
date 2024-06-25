@@ -6,16 +6,18 @@ import {getUserProfileById} from "./user-profile.js";
  * Crea una nueva publicación en Firestore.
  *
  * @param {string} userId - El ID del usuario que crea la publicación.
- * @param {string} title - El título de la publicación.
  * @param {string} content - El contenido de la publicación.
- * @param sourcecode
- * @param authorName
+ * @param {string} title - El título de la publicación.
+ * @param {string} sourcecode - El código fuente relacionado con la publicación.
+ * @param {string} authorName - El nombre del autor de la publicación.
+ * @param {string} postImageUrl - La URL de la imagen del post.
  * @returns {Promise<void>}
  */
-export async function createPost(userId, content,title, sourcecode, authorName) {
+export async function createPost(userId, content, title, sourcecode, authorName, postImageUrl) {
   try {
     const userProfile = await getUserProfileById(userId);
     let authorImage = userProfile ? userProfile.photoURL : null;
+
     if (!authorImage) {
       authorImage = '/images/default.jpg'; // Valor por defecto
     }
@@ -26,6 +28,7 @@ export async function createPost(userId, content,title, sourcecode, authorName) 
       authorName: authorName,
       authorImage: authorImage,
       sourcecode: sourcecode,
+      postImage: postImageUrl,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
       likesCount: 0,
