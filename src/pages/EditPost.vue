@@ -11,6 +11,29 @@ export default {
       required: true
     }
   },
+  async beforeRouteEnter(to, from, next) {
+    const postId = to.params.id;
+    const post = await getPost(postId);
+    const user = auth.currentUser;
+
+    if (user && post.authorId === user.uid) {
+      next();
+    } else {
+      next('/404');
+    }
+  },
+
+  async beforeRouteUpdate(to, from, next) {
+    const postId = to.params.id;
+    const post = await getPost(postId);
+    const user = auth.currentUser;
+
+    if (user && post.authorId === user.uid) {
+      next();
+    } else {
+      next('/404');
+    }
+  },
   setup(props) {
     const post = ref(null);
     const postTitle = ref('');

@@ -14,6 +14,15 @@ service cloud.firestore {
     // your rules
     match /{document=**} {
       allow read, write: if request.auth !=null;
+      allow create: if
+      	request.auth != null &&
+        request.auth.uid == request.resource.data.user_id;
+    }
+    match /users/{user} {
+    		allow red: if request.auth != null;
+        allow create, update:if
+          request.auth != null &&
+          request.auth.uid == user;
     }
   }
 }
