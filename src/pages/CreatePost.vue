@@ -13,16 +13,19 @@ const loading = ref(false);
 const errorMessage = ref('');
 const postImage = ref(null);
 const previewImage = ref('');
+const uploadingImage = ref(false);
 
 const handleImageUpload = async (e) => {
   const file = e.target.files[0];
   previewImage.value = URL.createObjectURL(file);
   const fileRef = storageRef(storage, file.name);
   console.log('Subiendo imagen a Firebase Storage...');
+  uploadingImage.value = true;
   await uploadBytes(fileRef, file);
   console.log('Imagen subida a Firebase Storage. Obteniendo URL de descarga...');
   postImage.value = await getDownloadURL(fileRef);
   console.log('URL de descarga obtenida:', postImage.value);
+  uploadingImage.value = false;
 };
 const handleSubmit = async () => {
   if (auth.currentUser) {
@@ -116,7 +119,7 @@ const handleEdit = async () => {
       </div>
 
       <div class="flex items-center justify-between">
-        <button type="submit" :disabled="loading"
+        <button type="submit" :disabled="loading || uploadingImage"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
           Publicar
         </button>

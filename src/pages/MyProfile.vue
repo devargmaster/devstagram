@@ -21,7 +21,10 @@ export default {
       showModal: false,
       passwordChanged: false,
       postCreated: false,
+      postUpdated: false,
       deletedRecord: false,
+      uploadingPhoto: false,
+      photoUpdated: false,
       postIdToDelete: null,
       modalTitle: 'Confirmar Eliminación',
       modalMessage: '¿Estás seguro de que deseas eliminar esta publicación?',
@@ -43,8 +46,15 @@ export default {
   created() {
     this.fetchUser();
     this.clearMessages();
+    if (localStorage.getItem('uploadingPhoto') === 'true') {
+      this.photoUpdated = true;
+      localStorage.removeItem('uploadingPhoto');
+    }
   },
   methods: {
+    closeModal() {
+      this.showModal = false;
+    },
     async fetchUser() {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -111,9 +121,13 @@ export default {
       this.passwordChanged = localStorage.getItem('passwordUpdated') === 'true';
       this.postCreated = localStorage.getItem('postCreated') === 'true';
       this.deletedRecord = localStorage.getItem('deletedRecord') === 'true';
+      this.postUpdated = localStorage.getItem('postUpdated') === 'true';
+      this.uploadingPhoto = localStorage.getItem('photoUploaded') === 'true';
       localStorage.removeItem('passwordUpdated');
       localStorage.removeItem('postCreated');
       localStorage.removeItem('deletedRecord');
+      localStorage.removeItem('postUpdated');
+      localStorage.removeItem('photoUploaded');
     }
   }
 }
@@ -140,6 +154,13 @@ export default {
         Publicación borrada con éxito.
       </div>
     </div>
+    <div class="flex items-center justify-center w-screen mb-4 ml-4 pl-4">
+      <div v-if="postUpdated"
+           class="text-white alert alert-success bg-green-700 rounded flex justify-center justify-items-center mx-auto my-auto p-4">
+        Publicación actualizada con éxito.
+      </div>
+    </div>
+    <div v-if="photoUpdated" class="text-white alert alert-success bg-green-700 rounded flex justify-center justify-items-center mx-auto my-auto p-4">Foto de perfil actualizada con éxito.</div>
     <div v-if="loading">
       <skeleton-loader />
       <skeleton-loader />

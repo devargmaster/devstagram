@@ -210,27 +210,15 @@ function notifyAll() {
  */
 export async function updateUserPhoto(photo) {
   try {
-    // Empezamos por subir la foto.
-    // TODO: Contemplar otro tipo de imágenes.
     await uploadFile(`users/${userData.id}/avatar.${getExtensionFromFile(photo)}`, photo);
-
-    // Para guardar la foto, necesitamos obtener la URL absoluta de dónde quedó alojada la imagen, y tenemos que
-    // actualizar tanto Firebase Authentication como Firestore.
-    // Empecemos por obtener la ruta absoluta.
     const photoURL = await getFileURL(`users/${userData.id}/avatar.jpg`);
-
-    // Guardamos la ruta en Authentication.
     const authPromise = updateProfile(auth.currentUser, {photoURL});
-
-    // La guardamos también en Firestore en el perfil del usuario.
     const storagePromise = updateUserProfile(userData.id, {photoURL});
-
     await Promise.all([authPromise, storagePromise]);
 
-    // Actualizamos los datos de la autenticación con la ruta de la foto.
+
     setUserData({photoURL});
   } catch (error) {
-    // TODO: Manejar el error.
     console.error("[auth.js updateUserPhoto] Error al actualizar la foto de perfil.");
     throw error;
   }

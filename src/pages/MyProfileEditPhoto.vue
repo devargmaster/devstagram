@@ -27,7 +27,8 @@ export default {
       this.uploadingPhoto = true;
       try {
         await updateUserPhoto(this.photo);
-        this.$router.push('/perfil'); // Redirige al usuario a la página de perfil
+        localStorage.setItem('uploadingPhoto', 'true');
+        this.$router.push('/perfil');
       } catch (error) {
       }
       this.uploadingPhoto = false;

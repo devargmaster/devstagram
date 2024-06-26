@@ -147,7 +147,6 @@ export default {
       <div v-if="user">
         <h2 class="text-2xl font-bold mb-4">Agregar un comentario</h2>
         <form @submit.prevent="handleCommentSubmit" class="flex flex-col space-y-4">
-          en
           <textarea v-model="newCommentContent" placeholder="Escribe tu comentario aquí..." class="p-2 rounded border"></textarea>
           <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Enviar comentario</button>
         </form>

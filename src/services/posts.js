@@ -1,6 +1,6 @@
-import {collection, addDoc, Timestamp, query, where, getDocs, getDoc, doc, updateDoc} from "firebase/firestore";
+import { collection, addDoc, Timestamp, query, where, getDocs, getDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
-import {getUserProfileById} from "./user-profile.js";
+import { getUserProfileById } from "./user-profile.js";
 
 /**
  * Crea una nueva publicación en Firestore.
@@ -40,6 +40,7 @@ export async function createPost(userId, content, title, sourcecode, authorName,
     throw error;
   }
 }
+
 export async function getPostsByUser(userId) {
   const postsCollection = collection(db, "posts");
   const q = query(postsCollection, where("userId", "==", userId));
@@ -47,6 +48,7 @@ export async function getPostsByUser(userId) {
   const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   return posts;
 }
+
 export async function getPostById(postId) {
   const postDoc = doc(db, "posts", postId);
   const postSnapshot = await getDoc(postDoc);
@@ -57,7 +59,6 @@ export async function getPostById(postId) {
     return null;
   }
 }
-
 
 /**
  * Actualiza una publicación existente en Firestore.
