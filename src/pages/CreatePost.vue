@@ -4,6 +4,7 @@ import { createPost } from '../services/posts';
 import { auth, storage } from '../services/firebase';
 import MainH1 from "../components/MainH1.vue";
 import router from "../router/router.js";
+import Spinner from '../components/Spinner.vue';
 import {ref as storageRef,getDownloadURL, uploadBytes} from "firebase/storage";
 
 const title = ref('');
@@ -21,6 +22,10 @@ const handleImageUpload = async (e) => {
   const fileRef = storageRef(storage, file.name);
   console.log('Subiendo imagen a Firebase Storage...');
   uploadingImage.value = true;
+
+  // Agrega un retraso artificial de 1 segundo (1000 milisegundos)
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   await uploadBytes(fileRef, file);
   console.log('Imagen subida a Firebase Storage. Obteniendo URL de descarga...');
   postImage.value = await getDownloadURL(fileRef);
@@ -80,8 +85,9 @@ const handleEdit = async () => {
 
 <template>
   <main-h1 class="text-center mb-6">Crear Publicación</main-h1>
-  <div class="create-post max-w-xl mx-auto mt-10">
+  <div  class="create-post max-w-xl mx-auto mt-10">
     <form @submit.prevent="handleSubmit" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+      <div v-if="!uploadingImage">
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
           Título
@@ -124,6 +130,12 @@ const handleEdit = async () => {
           Publicar
         </button>
         <p v-if="errorMessage" class="text-red-500 text-xs italic">{{ errorMessage }}</p>
+      </div>
+
+      </div>
+      <div v-else  class="w-full max-w-4xl bg-white p-6 rounded shadow">
+        <p>Subiendo imagen...</p>
+        <Spinner />
       </div>
     </form>
   </div>
