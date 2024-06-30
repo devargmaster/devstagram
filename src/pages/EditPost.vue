@@ -1,15 +1,27 @@
 <script>
 import { onMounted, ref } from 'vue';
 import { getPostById, updatePost } from '../services/posts.js';
-import { auth, storage } from '../services/firebase';
-import { useRouter } from 'vue-router'; // Importa el router
-
+import {auth, db, storage} from '../services/firebase';
+import { useRouter } from 'vue-router';
+import {doc, getDoc} from "firebase/firestore";
+async function getPost(postId) {
+  const postDoc = await getDoc(doc(db, "posts", postId));
+  if (postDoc.exists()) {
+    return postDoc.data();
+  } else {
+    console.log('No se encontró el post!');
+    return null;
+  }
+}
 export default {
   props: {
     id: {
       type: String,
       required: true
     }
+  },
+  methods: {
+
   },
   async beforeRouteEnter(to, from, next) {
     const postId = to.params.id;

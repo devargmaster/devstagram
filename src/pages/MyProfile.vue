@@ -233,7 +233,7 @@ export default {
       </div>
     </div>
   </div>
-  <Modal v-if="showModal" @close="showModal = false" @confirm="deletePost">
+  <Modal v-if="showModal" @close="showModal = false" @confirm="deletePost" :title="modalTitle" :message="modalMessage">
     <template v-slot:title>{{ modalTitle }}</template>
     <template v-slot:message>{{ modalMessage }}</template>
   </Modal>

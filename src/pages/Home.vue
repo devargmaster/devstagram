@@ -143,15 +143,19 @@ export default {
 </script>
 
 <template>
-  <div id="app" class="bg-gray-100 flex flex-col justify-center items-center p-4">
-    <main-h1 class="text-4xl font-bold mb-4">Bienvenido a Devstagram</main-h1>
-    <div v-if="!user" class="text-center mb-8">
-      <p class="text-xl mb-4">Devstagram es una red entre developers. Conecta con otros developers de todo el mundo.</p>
-      <router-link class="mb-8 inline-block bg-red-800 text-white px-6 py-2 rounded font-bold text-lg" to="/registro">
-        Regístrate ahora
-      </router-link>
+
+  <main-h1 class="text-4xl font-bold mb-4">Bienvenido a Devstagram</main-h1>
+  <div v-if="!user" class="text-center mb-8">
+    <p class="text-xl  mb-4">Devstagram es una red entre developers. Conecta con otros developers de todo el mundo.</p>
+    <div class="flex justify-center items-center">
+      <img src="../../public/images/devstagram_home.png" height="400" width="800"/>
     </div>
-    <div v-else class="text-center mb-8">
+    <router-link class="mb-8 inline-block bg-red-800 text-white px-6 py-2 rounded font-bold text-lg" to="/registro">
+      Regístrate ahora
+    </router-link>
+  </div>
+  <div v-else id="app" class="bg-gray-100 flex flex-col justify-center items-center p-4">
+    <div  class="text-center mb-8">
       <p class="text-xl mb-4">¡Hola, {{ userProfile?.name }}! Disfruta conectando con otros developers.</p>
       <router-link
         class="mb-8 inline-block bg-green-500 hover:bg-green-700 text-white px-6 py-2 rounded font-bold text-lg"
